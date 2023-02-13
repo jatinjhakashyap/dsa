@@ -339,3 +339,106 @@ print(A2)
 # prediction = prediction.astype(np.float)
 print(prediction)
  
+LAB-7
+K MEANS
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import random
+df = pd.read_csv("Mall_Customers.csv")
+print(df.head())
+
+X = df.drop(columns=['Gender', 'Age', 'CustomerID']).values
+
+plt.scatter(df['Annual Income (k$)'], df['Spending Score (1-100)'])
+plt.show()
+class KMeans:
+    def __init__(self, n_clusters=2, max_iter=100):
+        self.n_clusters = n_clusters
+        self.max_iter = max_iter
+        self.centroids = None
+
+    def fit_predict(self, X):
+        random_index = random.sample(range(0, X.shape[0]), self.n_clusters)
+        self.centroids = X[random_index]
+        for i in range(self.max_iter):
+            # assign clusters
+            cluster_group = self.assign_clusters(X)
+            old_centroids = self.centroids
+            # move centroids
+            self.centroids = self.move_centroids(X, cluster_group)
+            # check finish
+            if (old_centroids == self.centroids).all():
+                break
+
+        return cluster_group
+
+    def assign_clusters(self, X):
+        cluster_group = []
+        distances = []
+        for row in X:
+            for centroid in self.centroids:
+                distances.append(np.sqrt(np.dot(row - centroid, row - centroid)))
+            min_distance = min(distances)
+            index_pos = distances.index(min_distance)
+            cluster_group.append(index_pos)
+            distances.clear()
+
+        return np.array(cluster_group)
+
+    def move_centroids(self, X, cluster_group):
+        new_centroids = []
+        cluster_type = np.unique(cluster_group)
+
+        for type in cluster_type:
+            new_centroids.append(X[cluster_group == type].mean(axis=0))
+
+        return np.array(new_centroids)
+km = KMeans(n_clusters=5, max_iter=100)
+
+y_means = km.fit_predict(np.array(X))
+plt.scatter(X[y_means == 0, 0], X[y_means == 0, 1], color='black')
+plt.scatter(X[y_means == 1, 0], X[y_means == 1, 1], color='yellow')
+plt.scatter(X[y_means == 2, 0], X[y_means == 2, 1], color='red')
+plt.scatter(X[y_means == 3, 0], X[y_means == 3, 1], color='green')
+plt.scatter(X[y_means == 4, 0], X[y_means == 4, 1], color='blue')
+plt.show()
+
+
+LAB-8
+CLUSTERING 
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+df = pd.read_csv("cricket.csv")
+# Drop rows with NaN values
+df.dropna(inplace=True)
+
+# Select columns for clustering
+cluster_cols = ['Batting_Average', 'Bowling_Average', 'Fielding_Catches', 'Fielding_Stumping']
+df = df[cluster_cols]
+
+# Standardize the data
+scaler = StandardScaler()
+data_scaled = scaler.fit_transform(df)
+
+# Fit k-means model
+kmeans = KMeans(n_clusters=4)
+kmeans.fit(data_scaled)
+
+# Predict player types based on cluster labels
+df['Player_Type'] = pd.Categorical.from_codes(kmeans.labels_, ["Batsman", "Bowler", "Wicket_Keeper", "All_Rounder"])
+print(df)
+import matplotlib.pyplot as plt
+
+# Plot the data points, colored based on player type
+for player_type, color in zip(["Batsman", "Bowler", "All_Rounder", "Wicket_Keeper"], ['red', 'green', 'yellow', 'blue']):
+    player_type_df = df[df['Player_Type'] == player_type]
+    plt.scatter(player_type_df['Batting_Average'], player_type_df['Bowling_Average'], c=color, label=player_type)
+
+plt.xlabel('Batting Average')
+plt.ylabel('Bowling Average')
+plt.legend()
+plt.show()
