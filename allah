@@ -1,0 +1,341 @@
+LAB-1
+ Implement Min-max normalization and z-score normalization for the given data set.
+ import pandas as pd
+import matplotlib.pyplot as plt
+df = pd.read_csv(r'India_GDP_1960-2022.csv')
+print(df)
+ df_min_max_scaled = df.copy()
+  
+for column in df_min_max_scaled.columns:
+    df_min_max_scaled[column] = (df_min_max_scaled[column] - df_min_max_scaled[column].min()) / (df_min_max_scaled[column].max() - df_min_max_scaled[column].min())    
+  
+print(df_min_max_scaled)
+df_min_max_scaled.plot(kind = 'bar')
+
+Using Z-score Normalization
+df_z_scaled = df.copy()
+for column in df_z_scaled.columns:
+    df_z_scaled[column] = (df_z_scaled[column] - df_z_scaled[column].mean()) / df_z_scaled[column].std()
+    
+display(df_z_scaled)
+df_z_scaled.plot(kind='bar')
+
+LAB-2
+Missing values
+import pandas as pd
+import numpy as np
+data = pd.read_csv("melb_data.csv")
+print(data)
+bool_series = pd.isnull(data["Price"])
+data[bool_series]
+# Using notnull() function
+bool_series = pd.notnull(data["Price"])
+data[bool_series]
+# using fillna() function
+data["Price"].fillna("Not Available", inplace = True)
+data[10:50]
+# Filling missing values with next one
+data = pd.read_csv("melb_data.csv")
+df = pd.DataFrame(data)
+df["Price"].fillna(0)
+# using replace()
+data = pd.read_csv("melb_data.csv")
+data["Price"].replace(to_replace = np.NaN, value = 1087604)
+# using dropna()
+data = pd.read_csv("melb_data.csv")
+df = pd.DataFrame(data)
+df.dropna()
+# using dropna()
+data = pd.read_csv("melb_data.csv")
+df = pd.DataFrame(data)
+df.interpolate(method='linear', limit_direction='forward')
+
+
+LAB-3 
+Outlier detection 
+# Importing Required Libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+# Reading CSV
+data = pd.read_csv('melb_data.csv')
+df = pd.DataFrame(data)
+df2 = df.dropna()
+display(df2)
+# Creating List of given Column
+values = []
+values = list(df2.iloc[:, 2])
+# Calculating each Quartiles
+q1 = round(np.percentile(values, 25, interpolation = 'midpoint'), 2)
+q2 = round(np.percentile(values, 50, interpolation = 'midpoint'), 2)
+q3 = round(np.percentile(values, 75, interpolation = 'midpoint'), 2)
+
+print(f'Q1 25 Percentile of given Data is {q1}')
+print(f'Q2 50 Percentile of given Data is {q2}')
+print(f'Q3 75 Percentile of given Data is {q3}')
+
+# Calculating Interquartile Range
+iqr = round(q3 - q1, 2)
+
+print(f'Interquartile range is {iqr}')
+# Calculating Minimum and Maximum Bound
+minimum_value = round(q1 - 1.5 * iqr, 2)
+maximum_value = round(q3 + 1.5 * iqr, 2)
+
+print(f'Minimum Value can be {minimum_value}')
+print(f'Maximum Value can be {maximum_value}')
+# Checking what Outliers are present in the Dataset
+outliers = []
+for value in values:
+    if value < minimum_value or value > maximum_value:
+        outliers.append(value)
+print(outliers)
+# Plotting Box-Plot
+plt.boxplot(values)
+plt.title('Box Plot')
+plt.show()
+
+LAB-4 
+Itemsets
+import pandas as pd
+import numpy as np
+df=pd.read_csv('./practical4_itemset.csv')
+df
+#data seperation
+trans_df=df.item_list.str.split(',')
+trans_df
+#listing of all the items in the transactions
+init=[]
+for i in trans_df:
+  for q in i:
+    if(q not in init):
+      init.append(q)
+
+init=sorted(init)
+print(init)
+    
+
+#support count
+import math
+sp = 0.3
+s = math.ceil(sp*len(trans_df))
+s
+from pandas.core.arrays import string_
+from collections import Counter
+#counter c for all the single items along with their frequency
+c = Counter()
+for i in init:
+    for d in trans_df:
+        if(i in d):
+            c[i]+=1
+print("C1:")
+for i in c:
+    print(str([i])+": "+str(c[i]))
+print()
+#counter l for ruling out all the values less than support count
+l = Counter()
+for i in c:
+    if(c[i] >= s):
+        l[frozenset([i])]+=c[i]
+print("L1:")
+for i in l:
+    print(str(list(i))+": "+str(l[i]))
+print()
+pl = l
+pos = 1
+
+#finding subset function
+import itertools
+ 
+def findsubsets(s, n):
+    return list(itertools.combinations(s, n))
+
+#for count in the range greater than 3 to create the set of values containing three or more items
+for count in range (2,9):
+    nc = set()
+    #print(list(l))
+    temp = list(l)
+    
+    for i in range(0,len(temp)):
+        for j in range(i+1,len(temp)):
+            t = temp[i].union(temp[j])
+            if(len(t) == count):
+                nc.add(temp[i].union(temp[j]))
+    nc = list(nc)
+    c = Counter()
+    for i in nc:
+       arr=findsubsets(list(i),count-1)
+       print(arr)
+       cr=0
+       for j in arr:
+        je=set(j)
+        result=temp.count(je)
+        print(result)
+        if result>0:
+            cr+=1
+        else:
+            cr-=1
+        if(cr>=count):
+          c[i] = 0
+          for q in trans_df:
+              tem = set(q)
+              if(i.issubset(tem)):
+                c[i]+=1
+        else:
+           x=list(nc)
+           x.remove(i)
+
+    print("C"+str(count)+":")
+    for i in c:
+        print(str(list(i))+": "+str(c[i]))
+    print()
+    #counter l for ruling out all the values less than support count
+    l = Counter()
+    for i in c:
+        if(c[i] >= s):
+            l[i]+=c[i]
+    print("L"+str(count)+":")
+    for i in l:
+        print(str(list(i))+": "+str(l[i]))
+    print()
+    if(len(l) == 0):
+        break
+    
+    pl = l
+    pos = count
+    
+print("Result: ")
+print("L"+str(pos)+":")
+for i in pl:
+    print(str(list(i))+": "+str(pl[i]))
+print()
+
+
+
+
+LAB-5
+AND OR gate
+
+import numpy as np
+def unitStep(v):
+    if v >= 0:
+        return 1
+    else:
+        return 0
+        # design Perceptron Model
+def perceptronModel(x, w, b):
+    v = np.dot(w, x) + b
+    y = unitStep(v)
+    return y
+
+# AND Logic Function
+# w = weight b = bias 
+# w1 = 1, w2 = 1, b = -1.5
+def AND_logicFunction(x):
+    w = np.array([1, 1])
+    b = -1.5
+    return perceptronModel(x, w, b)
+
+# OR Logic Function
+# w1 = 1, w2 = 1, b = -0.5
+def OR_logicFunction(x):
+    w = np.array([1, 1])
+    b = -0.5
+    return perceptronModel(x, w, b)
+
+# testing the Perceptron Model
+test1 = np.array([0, 1])
+test2 = np.array([1, 1])
+test3 = np.array([0, 0])
+test4 = np.array([1, 0])
+
+print("AND({}, {}) = {}".format(0, 1, AND_logicFunction(test1)))
+print("AND({}, {}) = {}".format(1, 1, AND_logicFunction(test2)))
+print("AND({}, {}) = {}".format(0, 0, AND_logicFunction(test3)))
+print("AND({}, {}) = {}".format(1, 0, AND_logicFunction(test4)))
+print('')
+print("OR({}, {}) = {}".format(0, 1, OR_logicFunction(test1)))
+print("OR({}, {}) = {}".format(1, 1, OR_logicFunction(test2)))
+print("OR({}, {}) = {}".format(0, 0, OR_logicFunction(test3)))
+print("OR({}, {}) = {}".format(1, 0, OR_logicFunction(test4)))
+
+
+LAB-6 
+import numpy as np
+from matplotlib import pyplot as plt
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+def initializeParameters(inputFeatures, neuronsInHiddenLayers, outputFeatures):
+    W1 = np.random.randn(neuronsInHiddenLayers, inputFeatures)
+    W2 = np.random.randn(outputFeatures, neuronsInHiddenLayers)
+    b1 = np.zeros((neuronsInHiddenLayers, 1))
+    b2 = np.zeros((outputFeatures, 1))
+     
+    parameters = {"W1" : W1, "b1": b1,
+                  "W2" : W2, "b2": b2}
+    return parameters
+def forwardPropagation(X, Y, parameters):
+    m = X.shape[1]
+    W1 = parameters["W1"]
+    W2 = parameters["W2"]
+    b1 = parameters["b1"]
+    b2 = parameters["b2"]
+ 
+    Z1 = np.dot(W1, X) + b1
+    A1 = sigmoid(Z1)
+    Z2 = np.dot(W2, A1) + b2
+    A2 = sigmoid(Z2)
+ 
+    cache = (Z1, A1, W1, b1, Z2, A2, W2, b2)
+    logprobs = np.multiply(np.log(A2), Y) + np.multiply(np.log(1 - A2), (1 - Y))
+    cost = -np.sum(logprobs) / m
+    return cost, cache, A2
+def backwardPropagation(X, Y, cache):
+    m = X.shape[1]
+    (Z1, A1, W1, b1, Z2, A2, W2, b2) = cache
+     
+    dZ2 = A2 - Y
+    dW2 = np.dot(dZ2, A1.T) / m
+    db2 = np.sum(dZ2, axis = 1, keepdims = True)
+     
+    dA1 = np.dot(W2.T, dZ2)
+    dZ1 = np.multiply(dA1, A1 * (1- A1))
+    dW1 = np.dot(dZ1, X.T) / m
+    db1 = np.sum(dZ1, axis = 1, keepdims = True) / m
+     
+    gradients = {"dZ2": dZ2, "dW2": dW2, "db2": db2,
+                 "dZ1": dZ1, "dW1": dW1, "db1": db1}
+    return gradients
+# Updating the weights based on the negative gradients
+def updateParameters(parameters, gradients, learningRate):
+    parameters["W1"] = parameters["W1"] - learningRate * gradients["dW1"]
+    parameters["W2"] = parameters["W2"] - learningRate * gradients["dW2"]
+    parameters["b1"] = parameters["b1"] - learningRate * gradients["db1"]
+    parameters["b2"] = parameters["b2"] - learningRate * gradients["db2"]
+    return parameters
+X = np.array([[0, 0, 1, 1], [0, 1, 0, 1]]) 
+Y = np.array([[0, 1, 1, 0]])
+neuronsInHiddenLayers = 2 # (2)
+inputFeatures = X.shape[0] # (2)
+outputFeatures = Y.shape[0] # (1)
+parameters = initializeParameters(inputFeatures, neuronsInHiddenLayers, outputFeatures)
+epoch = 100000
+learningRate = 0.1
+losses = np.zeros((epoch, 1))
+ 
+for i in range(epoch):
+    losses[i, 0], cache, A2 = forwardPropagation(X, Y, parameters)
+    gradients = backwardPropagation(X, Y, cache)
+    parameters = updateParameters(parameters, gradients, learningRate)
+plt.figure()
+plt.plot(losses)
+plt.xlabel("EPOCHS")
+plt.ylabel("Loss value")
+plt.show()
+X = np.array([[1, 1, 0, 0], [0, 1, 0, 1]]) #input
+cost, _, A2 = forwardPropagation(X, Y, parameters)
+prediction = (A2 > 0.5) * 1.0
+print(A2)
+# prediction = prediction.astype(np.float)
+print(prediction)
+ 
